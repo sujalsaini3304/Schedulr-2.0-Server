@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import pkg from "pg";
 import becrypt from "bcrypt";
+import { generateJwtToken, jwtAuthMiddleware } from "./jwtAuth.js";
 
 const { Pool } = pkg;
 
@@ -44,6 +45,11 @@ router.post("/api/createUser", async (req, res) => {
   try {
     if (username && password) {
       const key = await becrypt.hash(password, 8);
+      const payload = {
+        username: username,
+        password: key,
+      };
+      const token = await generateJwtToken(payload);
       await client.query(
         "CREATE TABLE IF NOT EXISTS users (username VARCHAR(30) NOT NULL PRIMARY KEY , password TEXT NOT NULL , profile_image_url varchar(500) DEFAULT NULL , original_name VARCHAR(200) DEFAULT NULL , created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP )"
       );
@@ -58,6 +64,7 @@ router.post("/api/createUser", async (req, res) => {
       }
       res.status(200).json({
         message: "User created",
+        JwtToken: token,
       });
     } else {
       res.status(400).json({
@@ -135,9 +142,15 @@ router.post("/api/verifyUser", async (req, res) => {
       `select * from users where username='${username}' AND password='${value}'`
     );
     if (response) {
+      const payload = {
+        username: username,
+        password: password,
+      };
+      const token = generateJwtToken(payload);
       res.status(200).json({
         message: "User verified",
         result: response.rows[0],
+        JwtToken: token,
         status: 1,
       });
     } else {
@@ -159,23 +172,16 @@ router.post("/api/verifyUser", async (req, res) => {
 });
 
 // Field required - day, from_time, to_time, period, subject, branch, section, teacher
-router.post("/api/set/schedule", async (req, res) => {
+router.post("/api/set/schedule", jwtAuthMiddleware, async (req, res) => {
   const client = await pool.connect();
   if (client) {
     console.log("Connection build to neon pg database successfully");
   } else {
     console.log("Connection failed while connectiong to neon pg database");
   }
-  const {
-    username,
-    day,
-    from_time,
-    to_time,
-    period,
-    subject,
-    branch,
-    section,
-  } = req.body;
+  const { day, from_time, to_time, period, subject, branch, section } =
+    req.body;
+  const { username } = req.user;
   try {
     const name = await client.query(
       `SELECT original_name FROM users where username = '${username}' `
@@ -187,7 +193,6 @@ router.post("/api/set/schedule", async (req, res) => {
       `SELECT * from schedule where username = '${username}' AND period = '${period}' `
     );
     if (
-      username &&
       day &&
       from_time &&
       to_time &&
@@ -229,14 +234,14 @@ router.post("/api/set/schedule", async (req, res) => {
 });
 
 // get schedule
-router.post("/api/get/schedule", async (req, res) => {
+router.post("/api/get/schedule", jwtAuthMiddleware, async (req, res) => {
   const client = await pool.connect();
   if (client) {
     console.log("Connection build to neon pg database successfully");
   } else {
     console.log("Connection failed while connectiong to neon pg database");
   }
-  const { username } = req.body;
+  const { username } = req.user;
   try {
     const response = await client.query(
       `SELECT * FROM schedule WHERE username = '${username}' ORDER BY period `
@@ -265,14 +270,15 @@ router.post("/api/get/schedule", async (req, res) => {
 });
 
 // update original_name
-router.post("/api/update/profileName", async (req, res) => {
+router.post("/api/update/profileName", jwtAuthMiddleware, async (req, res) => {
   const client = await pool.connect();
   if (client) {
     console.log("Connection build to neon pg database successfully");
   } else {
     console.log("Connection failed while connectiong to neon pg database");
   }
-  const { username, new_name } = req.body;
+  const { new_name } = req.body;
+  const { username } = req.user;
   try {
     const response1 = await client.query(
       `UPDATE users SET original_name = '${new_name}' WHERE username = '${username}'`
@@ -303,15 +309,15 @@ router.post("/api/update/profileName", async (req, res) => {
 });
 
 // update others details excluding profileName of schedule
-router.post("/api/update/details", async (req, res) => {
+router.post("/api/update/details", jwtAuthMiddleware, async (req, res) => {
   const client = await pool.connect();
   if (client) {
     console.log("Connection build to neon pg database successfully");
   } else {
     console.log("Connection failed while connectiong to neon pg database");
   }
+  const { username } = req.user;
   const {
-    username,
     new_subject,
     new_branch,
     new_section,
