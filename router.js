@@ -139,7 +139,6 @@ router.post("/api/verifyUser", async (req, res) => {
     if (response) {
       const payload = {
         username: username,
-        password: password,
       };
       const token = generateJwtToken(payload);
       res.status(200).json({
@@ -165,6 +164,7 @@ router.post("/api/verifyUser", async (req, res) => {
     console.log("Connection closed successfully.");
   }
 });
+
 
 // Field required - day, from_time, to_time, period, subject, branch, section, teacher
 router.post("/api/set/schedule", jwtAuthMiddleware, async (req, res) => {
