@@ -1,6 +1,7 @@
 import express from "express";
 import router from "./router.js";
 import dotenv from "dotenv";
+import { jwtAuthMiddleware } from "./jwtAuth.js";
 
 dotenv.config({
   path: ".env",

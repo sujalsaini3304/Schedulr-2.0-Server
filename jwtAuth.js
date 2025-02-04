@@ -33,7 +33,13 @@ const jwtAuthMiddleware = (req , res , next)=>{
 }
 
 const generateJwtToken = (payload)=>{
-    return jwt.sign(payload,process.env.JWT_SECRET_SIGNATURE_CODE,{expiresIn:JWT_EXPIRY_DATE});
+    try {
+      const token = jwt.sign(payload, process.env.JWT_SECRET_SIGNATURE_CODE, { expiresIn: JWT_EXPIRY_DATE });
+      return token;
+    } catch (error) {
+      console.error("Error generating JWT:", error);
+      throw new Error("JWT generation failed");
+    }
 }
 
 export {
