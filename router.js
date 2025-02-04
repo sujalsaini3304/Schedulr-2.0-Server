@@ -45,11 +45,6 @@ router.post("/api/createUser", async (req, res) => {
   try {
     if (username && password) {
       const key = await becrypt.hash(password, 8);
-      const payload = {
-        username: username,
-        password: key,
-      };
-      const token = generateJwtToken(payload);
       await client.query(
         "CREATE TABLE IF NOT EXISTS users (username VARCHAR(30) NOT NULL PRIMARY KEY , password TEXT NOT NULL , profile_image_url varchar(500) DEFAULT NULL , original_name VARCHAR(200) DEFAULT NULL , created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP )"
       );
@@ -62,6 +57,12 @@ router.post("/api/createUser", async (req, res) => {
           `INSERT INTO users (username , password) VALUES ( '${username}' , '${key}' )`
         );
       }
+      
+      const token = generateJwtToken({
+        username: username,
+        password: key,
+      });
+
       res.status(200).json({
         message: "User created",
         JwtToken: token,
