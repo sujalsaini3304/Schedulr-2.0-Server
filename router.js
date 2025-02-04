@@ -49,7 +49,7 @@ router.post("/api/createUser", async (req, res) => {
         username: username,
         password: key,
       };
-      const token = await generateJwtToken(payload);
+      const token = generateJwtToken(payload);
       await client.query(
         "CREATE TABLE IF NOT EXISTS users (username VARCHAR(30) NOT NULL PRIMARY KEY , password TEXT NOT NULL , profile_image_url varchar(500) DEFAULT NULL , original_name VARCHAR(200) DEFAULT NULL , created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP )"
       );
