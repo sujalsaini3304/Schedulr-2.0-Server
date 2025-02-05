@@ -131,12 +131,10 @@ router.post("/api/verifyUser", async (req, res) => {
 
   const { username, password } = req.body;
   try {
-    const value = await becrypt.hash(password, 10);
     const response = await client.query(
-      `select * from users where username = $1 AND password = $2`,
-      [username, value]
+      `SELECT * FROM users WHERE username=$1`,[username]
     );
-    if (response) {
+    if (response.rows.length != 0 && await becrypt.compare(password , response.rows[0].password)) {
       const payload = {
         username: username,
       };
@@ -156,7 +154,7 @@ router.post("/api/verifyUser", async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(404).json({
-      message: error,
+      message: "Error",
       status: 0,
     });
   } finally {
@@ -164,7 +162,6 @@ router.post("/api/verifyUser", async (req, res) => {
     console.log("Connection closed successfully.");
   }
 });
-
 
 // Field required - day, from_time, to_time, period, subject, branch, section, teacher
 router.post("/api/set/schedule", jwtAuthMiddleware, async (req, res) => {
