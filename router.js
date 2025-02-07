@@ -29,6 +29,10 @@ router.get("/", async (req, res) => {
   res.json({
     message: "Server Started",
     status: "okay",
+    developer_details:{
+      developer_name:"Sujal Kumar Saini",
+      email:"sujalsaini3304@gmail.com",
+    },
   });
 });
 
@@ -56,7 +60,7 @@ router.post("/api/createUser", async (req, res) => {
 
       res.status(200).json({
         message: "User created",
-        JwtToken: token,
+        jwt_token: token,
       });
     } else {
       res.status(400).json({
@@ -141,8 +145,8 @@ router.post("/api/verifyUser", async (req, res) => {
       const token = generateJwtToken(payload);
       res.status(200).json({
         message: "User verified",
-        result: response.rows[0],
-        JwtToken: token,
+        result: response.rows[0].username,
+        jwt_token: token,
         status: 1,
       });
     } else {
