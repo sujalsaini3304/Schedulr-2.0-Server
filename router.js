@@ -198,7 +198,7 @@ router.post("/api/set/schedule", jwtAuthMiddleware, async (req, res) => {
       [username]
     );
     await client.query(
-      "CREATE TABLE IF NOT EXISTS schedule ( username VARCHAR(30) REFERENCES users(username) ON DELETE CASCADE PRIMARY KEY NOT NULL , day VARCHAR(30) , from_time VARCHAR(10) , to_time VARCHAR(10) , period INT , subject TEXT , branch VARCHAR(30) , section VARCHAR(4) , semester INT ,  instructor VARCHAR(200) , created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP )"
+      "CREATE TABLE IF NOT EXISTS schedule ( username VARCHAR(30) REFERENCES users(username) ON DELETE CASCADE , day VARCHAR(30) , from_time VARCHAR(10) , to_time VARCHAR(10) , period INT , subject TEXT , branch VARCHAR(30) , section VARCHAR(4) , semester INT ,  instructor VARCHAR(200) , created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP PRIMARY KEY NOT NULL )"
     );
     const result = await client.query(
       `SELECT * from schedule where username = $1 AND period = $2 `,
