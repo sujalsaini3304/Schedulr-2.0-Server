@@ -70,7 +70,7 @@ router.post("/api/create/user", async (req, res) => {
       });
     } else {
       res.status(400).json({
-        message:"Account not created.",
+        message: "Account not created.",
       });
     }
   } catch (error) {
@@ -98,7 +98,7 @@ router.post("/api/delete/user", async (req, res) => {
       `select username , password from users where username= $1`,
       [username]
     );
-    if (response && response.rows.length != 0 ) {
+    if (response && response.rows.length != 0) {
       const flag = await becrypt.compare(password, response.rows[0].password);
       if (flag) {
         await client.query(`DELETE FROM users WHERE username = $1`, [username]);
@@ -158,21 +158,21 @@ router.post("/api/verify/user", async (req, res) => {
       };
       const token = generateJwtToken(payload);
       res.status(200).json({
-        message: "User verified",
+        message: "User verified.",
         data: userInfo.rows[0],
         jwt_token: token,
         status: 1,
       });
     } else {
       res.status(400).json({
-        message: "User not there",
+        message: "Wrong password.",
         status: 0,
       });
     }
   } catch (error) {
     console.log(error);
     res.status(404).json({
-      message: "Error in verification process.",
+      message: "User not exist. ",
       status: 0,
     });
   } finally {
@@ -189,8 +189,16 @@ router.post("/api/set/schedule", jwtAuthMiddleware, async (req, res) => {
   } else {
     console.log("Connection failed while connectiong to neon pg database");
   }
-  const { day, from_time, to_time, period, subject, branch, section , semester } =
-    req.body;
+  const {
+    day,
+    from_time,
+    to_time,
+    period,
+    subject,
+    branch,
+    section,
+    semester,
+  } = req.body;
   const { username } = req.user;
   try {
     const name = await client.query(
@@ -215,7 +223,7 @@ router.post("/api/set/schedule", jwtAuthMiddleware, async (req, res) => {
       name.rows.length != 0 &&
       period <= process.env.MAX_PERIOD_LIMIT &&
       result.rows.length == 0 &&
-      semester 
+      semester
     ) {
       await client.query(
         `INSERT INTO schedule (username , day ,from_time ,to_time, period , subject , branch , section , semester , instructor) VALUES ( $1 , $2 , $3, $4 , $5 , $6, $7, $8, $9 , $10)`,
@@ -228,7 +236,7 @@ router.post("/api/set/schedule", jwtAuthMiddleware, async (req, res) => {
           subject,
           branch,
           section,
-          semester ,
+          semester,
           name.rows[0].original_name == null
             ? username
             : name.rows[0].original_name,
@@ -491,7 +499,7 @@ router.post("/api/update/user/info", jwtAuthMiddleware, async (req, res) => {
   }
 });
 
-// updating schedule 
+// updating schedule
 router.post(
   "/api/update/schedule/details",
   jwtAuthMiddleware,
