@@ -149,30 +149,35 @@ router.post("/api/verify/user", async (req, res) => {
       `SELECT * FROM user_details WHERE username=$1`,
       [username]
     );
-    if (
-      response.rows.length != 0 &&
-      (await becrypt.compare(password, response.rows[0].password))
-    ) {
-      const payload = {
-        username: username,
-      };
-      const token = generateJwtToken(payload);
-      res.status(200).json({
-        message: "User verified.",
-        data: userInfo.rows[0],
-        jwt_token: token,
-        status: 1,
-      });
+
+    if (response.rows.length != 0) {
+      if (await becrypt.compare(password, response.rows[0].password)) {
+        const payload = {
+          username: username,
+        };
+        const token = generateJwtToken(payload);
+        res.status(200).json({
+          message: "User verified.",
+          data: userInfo.rows[0],
+          jwt_token: token,
+          status: 1,
+        });
+      } else {
+        res.status(400).json({
+          message: "Wrong password.",
+          status: 0,
+        });
+      }
     } else {
-      res.status(400).json({
-        message: "Wrong password.",
+      res.status(404).json({
+        message: "User not exist.",
         status: 0,
       });
     }
   } catch (error) {
     console.log(error);
     res.status(404).json({
-      message: "User not exist. ",
+      message: "Error in verification process.",
       status: 0,
     });
   } finally {
