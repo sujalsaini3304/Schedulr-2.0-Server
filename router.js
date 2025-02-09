@@ -189,7 +189,7 @@ router.post("/api/set/schedule", jwtAuthMiddleware, async (req, res) => {
   } else {
     console.log("Connection failed while connectiong to neon pg database");
   }
-  const { day, from_time, to_time, period, subject, branch, section } =
+  const { day, from_time, to_time, period, subject, branch, section , semester } =
     req.body;
   const { username } = req.user;
   try {
@@ -198,7 +198,7 @@ router.post("/api/set/schedule", jwtAuthMiddleware, async (req, res) => {
       [username]
     );
     await client.query(
-      "CREATE TABLE IF NOT EXISTS schedule ( username VARCHAR(30) REFERENCES users(username) ON DELETE CASCADE PRIMARY KEY NOT NULL , day VARCHAR(30) , from_time VARCHAR(10) , to_time VARCHAR(10) , period INT , subject TEXT , branch VARCHAR(30) , section VARCHAR(4) ,  instructor VARCHAR(200) , created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP )"
+      "CREATE TABLE IF NOT EXISTS schedule ( username VARCHAR(30) REFERENCES users(username) ON DELETE CASCADE PRIMARY KEY NOT NULL , day VARCHAR(30) , from_time VARCHAR(10) , to_time VARCHAR(10) , period INT , subject TEXT , branch VARCHAR(30) , section VARCHAR(4) , semester INT ,  instructor VARCHAR(200) , created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP )"
     );
     const result = await client.query(
       `SELECT * from schedule where username = $1 AND period = $2 `,
@@ -214,10 +214,11 @@ router.post("/api/set/schedule", jwtAuthMiddleware, async (req, res) => {
       section &&
       name.rows.length != 0 &&
       period <= process.env.MAX_PERIOD_LIMIT &&
-      result.rows.length == 0
+      result.rows.length == 0 &&
+      semester 
     ) {
       await client.query(
-        `INSERT INTO schedule (username , day ,from_time ,to_time, period , subject , branch , section , instructor) VALUES ( $1 , $2 , $3, $4 , $5 , $6, $7, $8, $9)`,
+        `INSERT INTO schedule (username , day ,from_time ,to_time, period , subject , branch , section , semester , instructor) VALUES ( $1 , $2 , $3, $4 , $5 , $6, $7, $8, $9 , $10)`,
         [
           username,
           day,
@@ -227,6 +228,7 @@ router.post("/api/set/schedule", jwtAuthMiddleware, async (req, res) => {
           subject,
           branch,
           section,
+          semester ,
           name.rows[0].original_name == null
             ? username
             : name.rows[0].original_name,
